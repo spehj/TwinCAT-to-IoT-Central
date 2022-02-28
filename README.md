@@ -26,7 +26,5 @@ The TwinCAT environment runs a production line simulation based on the  PackML s
 
 Calculated data are then transferred to the Azure IoT Central web application, where the operator has remote supervisory control over the effectiveness of the process.
 
-
-
-
-<img src="https://user-images.githubusercontent.com/62114221/156036918-e1bcde0c-8383-476e-b652-18ebb2196baa.png" width="70%">
+<img src="https://user-images.githubusercontent.com/62114221/156036918-e1bcde0c-8383-476e-b652-18ebb2196baa.png" width="40%">
+We can also control the production line from the Azure IoT Central application.
