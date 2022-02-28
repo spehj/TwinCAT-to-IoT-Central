@@ -1,4 +1,4 @@
-### TwinCAT-to-IoT-Central
+# TwinCAT PLC connected to the Azure IoT Central Application
 
 This is a project which connects TwinCAT device with Microsoft Azure IoT central application using Raspberry Pi as an edge device.
 
@@ -9,3 +9,6 @@ real-time. For connection between Raspberry Pi and TwinCAT device, I used PyADS 
 
 
 This code is supposed to run on a Raspberry Pi.
+<br/>
+<br/>
+![proizvodna-inija-simulacija-v2](https://user-images.githubusercontent.com/62114221/156035010-d7dbbbdc-5d50-4a15-bb87-2b6169efe18b.png)
