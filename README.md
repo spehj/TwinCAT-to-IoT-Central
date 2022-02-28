@@ -5,7 +5,7 @@ This is an Edge Computing application where The TwinCAT device is connected to M
 - We can see the data computed on the edge and see results in real time on the Azure IoT Central Dashboard.
 - We can also control the process and change variable values on the PLC from the Web Application from anywhere in the world.
 
-<br/>
+<img src="https://user-images.githubusercontent.com/62114221/156039712-1a69b4c4-e6af-477c-91b3-a33d506db9cf.jpg" width="70%">
 
 This application is just an example of an Edge application. Here we are monitoring the effectiveness of the production process by calculating the overall equipment effectiveness (OEE) indicators at the edge of the network. It's also possible to use this code for other applications includin ML models on the Edge.
 
@@ -23,3 +23,4 @@ Calculated data are then transferred to the Azure IoT Central web application, w
 
 <img src="https://user-images.githubusercontent.com/62114221/156036918-e1bcde0c-8383-476e-b652-18ebb2196baa.png" width="40%">
 We can also control the production line from the Azure IoT Central application.
+
