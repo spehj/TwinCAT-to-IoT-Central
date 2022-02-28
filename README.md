@@ -1,4 +1,4 @@
-# TwinCAT-to-IoT-Central
+### TwinCAT-to-IoT-Central
 
 This is a project which connects TwinCAT device with Microsoft Azure IoT central application using Raspberry Pi as an edge device.
 
