@@ -181,7 +181,7 @@ def trackTime(handle, name, timestamp,value):
                 suspendedTimer.start()
             
         except:
-            print("Problem v stanju 5.")
+            print("Problem in state 5.")
 
     elif stanje == 6:
 
