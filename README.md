@@ -6,11 +6,9 @@ This is an Edge Computing application where The TwinCAT device is connected to M
 - We can also control the process and change variable values on the PLC from the Web Application from anywhere in the world.
 
 <br/>
-<br/>
 
-This application is just an example of an Edge application. We are monitoring the effectiveness of the production process by calculating the overall equipment effectiveness (OEE) indicators at the edge of the network
+This application is just an example of an Edge application. Here we are monitoring the effectiveness of the production process by calculating the overall equipment effectiveness (OEE) indicators at the edge of the network. It's also possible to use this code for other applications includin ML models on the Edge.
 
-<br/>
 <br/>
 
 ## TwinCAT device with simulated production line
