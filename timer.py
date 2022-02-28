@@ -9,11 +9,12 @@ class Timer:
     def __init__(self):
         self._start_time = None
 
-        # Pretecen cas v eni periodi
+        
+        # Elapsed time in one period
         self._elapsed_time = 0
-        # Skupen pretecen cas v posameznem stanju
+        # Total elapsed time in each state
         self._full_time = 0
-        # Trenuten skupni pretecen cas v stanju
+        # Current total elapsed time in the state
         self._current_time = 0
     
 
@@ -38,7 +39,7 @@ class Timer:
         self._start_time = None
         
         print("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
-        print(f" |||    Cas pretekel v tej periodi stanja {prejsnje_stanje}: {self._elapsed_time:0.1f} sekund    |||")
+        print(f" |||    Time elapsed in this period {prejsnje_stanje}: {self._elapsed_time:0.1f} seconds    |||")
         print("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")
         return self._current_time
         
