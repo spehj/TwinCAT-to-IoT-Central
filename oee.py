@@ -1,4 +1,3 @@
-# Knjiznica PyAds
 import pyads
 from time import sleep
 from timer import Timer
@@ -9,7 +8,7 @@ from azure.iot.device import MethodResponse
 import os, asyncio, json 
 
 
-# Pridobimo povezovalne kljuce 
+# Get connection secrets from .end file
 load_dotenv()
 id_scope = os.getenv('ID_SCOPE')
 device_id = os.getenv('DEVICE_ID')
@@ -18,119 +17,121 @@ primary_key = os.getenv('PRIMARY_KEY')
 
 try:
 
-    # Vzpostavitev ADS povezave
-    # ADS naslov Raspberry Pi
+    # ADS connection
+    # ADS address Raspberry Pi
     SENDER_AMS = '192.168.1.120.1.1'
-    # Lokalni IP naslov racunalnika s TwinCat okoljem    
+    # Local IP address of TwinCAT device  
     #PLC_IP = '192.168.1.88'
     PLC_IP = '192.168.1.112'
-    # Uporabnisko ime za dostop do TwinCat naprave (ce je v uporabi)            
+    # Username for TwinCAT device            
     USERNAME = ''
-    # Geslo za dostop do TwinCat naprave (ce je v uporabi)                        
+    # Password for TwinCAT device                      
     PASSWORD = ''
-    # Lokalni IP Raspberry Pi                        
+    # Local IP of Raspberry Pi                        
     ROUTE_NAME = '192.168.1.120'
-    # Ime Raspberry Pi        
+    # Raspberry Pi name         
     HOSTNAME = 'pi'
-    # ADS naslov TwinCat naprave                     
+    # ADS address of TwinCAT device                     
     PLC_AMS_ID = '192.168.1.88.1.1'
     #PLC_AMS_ID = '192.168.1.112.1.1'
 
-    # Odpremo vrata za komunikacijo preko ADS
+    # We open the port for communication via ADS
     pyads.open_port()
-    # Nastavimo ADS naslov Raspberry Pi                        
+    # Set ADS address for Raspberry Pi                        
     pyads.set_local_address(SENDER_AMS)         
-    print("Povezovanje s PLK...")
-    # Shranimo instanco povezave v spremenljivko plc                       
+    print("Connecting to PLC...")                  
     plc = pyads.Connection(PLC_AMS_ID, 851, PLC_IP)
-    # Odpremo povezavo     
+    # Open connection    
     plc.open()
-    # Preverimo povezavo
-    print("Povezava vzpostavljena:",plc.is_open)              
+    # Check connection
+    print("Connected:",plc.is_open)              
     print('--------------------------------')
 
 except:
     plc.close()
-    print("Cas je potekel. Ni povezave s PLK...")
+    print("PLC connection timeout...")
 
 stateCurrent = 0
 partsProduced = 0
 machDesignSpeed = 0
 badParts = 0
-#Interval posiljanja sporocil v IoT Central v sekundah
+
+# Interval of sending messages to IoT Central in seconds
 intervalPosiljanja = 120
 
 @plc.notification(pyads.PLCTYPE_DINT)
 def callbackBadParts(handle, name, timestamp, value):
     global badParts
     badParts = value
-    print(f"---> Posodobitev - stevilo slabih kosov:\t{badParts}\t<---")
+    print(f"---> Update - number of bad parts:\t{badParts}\t<---")
 
 
 @plc.notification(pyads.PLCTYPE_REAL)
 def callbackMachSpeed(handle, name, timestamp, value):
     global machDesignSpeed
     machDesignSpeed = value
-    print(f"---> Posodobitev - ciljna hitrost stroja:\t{machDesignSpeed}\t<---")
 
 
 @plc.notification(pyads.PLCTYPE_DINT)
 def callbackAccCount(handle, name, timestamp, value):
     global partsProduced
     partsProduced = value
-    #print(f"---> Posodobitev - stevilo kosov:\t{partsProduced}\t<---")
 
 
 
 
-#Deklaracija casovnikov
-undefinedTimer      =    Timer()     # stanje 0
-clearingTimer       =    Timer()     # stanje 1
-stoppedTimer        =    Timer()     # stanje 2
-startingTimer       =    Timer()     # stanje 3
-idleTimer           =    Timer()     # stanje 4
-suspendedTimer      =    Timer()     # stanje 5
-executeTimer        =    Timer()     # stanje 6 
-stoppingTimer       =    Timer()     # stanje 7
-abortingTimer       =    Timer()     # stanje 8
-abortedTimer        =    Timer()     # stanje 9
-holdingTimer        =    Timer()     # sanje 10
-heldTimer           =    Timer()     # stanje 11
-unholdingTimer      =    Timer()     # stanje 12
-suspendingTimer     =    Timer()     # stanje 13
-unsuspendingTimer   =    Timer()     # stanje 14
-resettingTimer      =    Timer()     # stanje 15
-completingTimer     =    Timer()     # stanje 16
-completeTimer       =    Timer()     # stanje 17
 
+#Timer instances
+#For measuring time in certain PackML state
+undefinedTimer      =    Timer()     # state 0
+clearingTimer       =    Timer()     # state 1
+stoppedTimer        =    Timer()     # state 2
+startingTimer       =    Timer()     # state 3
+idleTimer           =    Timer()     # state 4
+suspendedTimer      =    Timer()     # state 5
+executeTimer        =    Timer()     # state 6 
+stoppingTimer       =    Timer()     # state 7
+abortingTimer       =    Timer()     # state 8
+abortedTimer        =    Timer()     # state 9
+holdingTimer        =    Timer()     # state 10
+heldTimer           =    Timer()     # state 11
+unholdingTimer      =    Timer()     # state 12
+suspendingTimer     =    Timer()     # state 13
+unsuspendingTimer   =    Timer()     # state 14
+resettingTimer      =    Timer()     # state 15
+completingTimer     =    Timer()     # state 16
+completeTimer       =    Timer()     # state 17
+
+
+# Callback function to track time in certain state
 @plc.notification(pyads.PLCTYPE_DINT)
 def trackTime(handle, name, timestamp,value):
     global stateCurrent
     prejsnje_stanje = stateCurrent
     stanje = value
     stateCurrent = stanje
-    print(f"--->\tPosodobitev - trenutno stanje:\t{stanje}\t<---")
-    print(f"--->\tPosodobitev - prejsnje stanje:\t{prejsnje_stanje}\t<---")
+    print(f"--->\tUpdate - current state:\t{stanje}\t<---")
+    print(f"--->\tUpdate - previous state:\t{prejsnje_stanje}\t<---")
 
 
-    # Preverimo stanje
+    # Check state
     if stanje == 0:
-        print("Nedefinirano stanje 0...")
+        print("Not defined...")
 
     elif stanje == 1:
         try:
-            # Preverimo, da se je prejsnje stanje izvedlo
+            # Let’s check that the previous state was implemented
             if abortedTimer._start_time is not None:
-                # Ustavimo casovnik prejsnjega stanja 
+                # Stop the timer of previous state
                 abortedTimer.stop(prejsnje_stanje)
 
-            # Preverimo, da novo stanje ni aktivno
-            if clearingTimer._start_time is None:
-                # Zazenemo casovnik v novem stanju
+            # Check that the new state is not active
+            if clearingTimer._start_time is None:     
+                # We start the timer in the new state
                 clearingTimer.start()
             
         except:
-            print("Problem v stanju 1.")
+            print("Problem in state 1.")
 
     elif stanje == 2:
         try:
@@ -144,7 +145,7 @@ def trackTime(handle, name, timestamp,value):
                 stoppedTimer.start()
             
         except:
-            print("Problem v stanju 2.")
+            print("Problem in state 2.")
 
     elif stanje == 3:
         try:
@@ -156,7 +157,7 @@ def trackTime(handle, name, timestamp,value):
                 startingTimer.start()
             
         except:
-            print("Problem v stanju 3.")
+            print("Problem in state 3.")
 
     elif stanje == 4:
         try:
@@ -168,7 +169,7 @@ def trackTime(handle, name, timestamp,value):
                 idleTimer.start()
             
         except:
-            print("Problem v stanju 4.")
+            print("Problem in state 4.")
 
     elif stanje == 5:
         try:
@@ -198,10 +199,10 @@ def trackTime(handle, name, timestamp,value):
 
             if executeTimer._start_time is None:
                 executeTimer.start()
-                print("Stroj v pogonu!")
+                
                 
         except:
-            print("Problem v stanju 6.")
+            print("Problem in state.")
 
     elif stanje == 7:
 
@@ -248,7 +249,7 @@ def trackTime(handle, name, timestamp,value):
             
         
         except:
-            print("Problem v stanju 7.")
+            print("Problem in state 7.")
         
     elif stanje == 8:
         try:
@@ -302,7 +303,7 @@ def trackTime(handle, name, timestamp,value):
             
 
         except:
-            print("Problem v stanju 8")
+            print("Problem in state 8.")
     
     elif stanje == 9:
         try:
@@ -313,7 +314,7 @@ def trackTime(handle, name, timestamp,value):
                 abortedTimer.start()
             
         except:
-            print("Problem v stanju 9")
+            print("Problem in state 9.")
 
 
     elif stanje == 10:
@@ -326,7 +327,7 @@ def trackTime(handle, name, timestamp,value):
             
 
         except:
-            print("Problem v stanju 10.")
+            print("Problem in state 10.")
         
     elif stanje == 11:
         try:
@@ -337,7 +338,7 @@ def trackTime(handle, name, timestamp,value):
                 heldTimer.start()
             
         except:
-            print("Problem v stanju 11.")
+            print("Problem in state 11.")
         
 
 
@@ -350,7 +351,7 @@ def trackTime(handle, name, timestamp,value):
                 unholdingTimer.start()
            
         except:
-            print("Problem v stanju 12")
+            print("Problem in state 12.")
 
     elif stanje == 13:
         try:
@@ -361,7 +362,7 @@ def trackTime(handle, name, timestamp,value):
                 suspendingTimer.start()
            
         except:
-            print("Problem v stanju 13")
+            print("Problem in state 13.")
     elif stanje == 14:
         try:
             if suspendedTimer._start_time is not None:
@@ -371,7 +372,7 @@ def trackTime(handle, name, timestamp,value):
                 unsuspendingTimer.start()
             
         except:
-            print("Problem v stanju 14")
+            print("Problem in state 14.")
     elif stanje == 15:
         try:
             if stoppedTimer._start_time is not None:
@@ -384,7 +385,7 @@ def trackTime(handle, name, timestamp,value):
                 resettingTimer.start()
             
         except:
-            print("Problem v stanju 15")
+            print("Problem in state 15.")
     elif stanje == 16:
         try:
             if executeTimer._start_time is not None:
@@ -394,7 +395,7 @@ def trackTime(handle, name, timestamp,value):
                 completingTimer.start()
             
         except:
-            print("Problem v stanju 16")
+            print("Problem in state 16.")
     elif stanje == 17:
         try:
             if completingTimer._start_time is not None:
@@ -404,16 +405,16 @@ def trackTime(handle, name, timestamp,value):
                 completeTimer.start()
             
         except:
-            print("Problem v stanju 17")
+            print("Problem in state 17.")
     else:
-        print("Prekinitev")
+        print("Interruption")
 
         
 
 
 
     
-
+# Create device notifications for TwinCAT variables (tags)
 plc.add_device_notification('GlobalVariables.PackTags.Status.StateCurrent',pyads.NotificationAttrib(4), trackTime)
 plc.add_device_notification('GlobalVariables.PackTags.Admin.ProdProcessedCount[1].AccCount',pyads.NotificationAttrib(4), callbackAccCount)
 plc.add_device_notification('GlobalVariables.PackTags.Admin.MachDesignSpeed',pyads.NotificationAttrib(4), callbackMachSpeed)
@@ -422,7 +423,7 @@ plc.add_device_notification('GlobalVariables.PackTags.Admin.ProdDefectiveCount[1
 
 async def main():
 
-    # Povezava z IoT Central
+    # Connection to IoT Central
     async def register_device():
         provisioning_device_client = ProvisioningDeviceClient.create_from_symmetric_key(
             provisioning_host='global.azure-devices-provisioning.net',
@@ -432,29 +433,27 @@ async def main():
 
         return await provisioning_device_client.register()
     
-    # Pocakamo na rezultate povezave
+    # wait for results
     results = await asyncio.gather(register_device())
-    # Pridobimo rezultate o nasi IoT Central aplikaciji
+    # Get result info
     registration_result = results[0]
     
-    # Sestavimo povezovalni niz
+    # Create connection string
     conn_str='HostName=' + registration_result.registration_state.assigned_hub + \
                 ';DeviceId=' + device_id + \
                 ';SharedAccessKey=' + primary_key
     
-    # Za interakcijo z Azure IoT Central se uporabi Client objekt
+    # A Client object is used to interact with Azure IoT Central
     device_client = IoTHubDeviceClient.create_from_connection_string(conn_str)
 
-    # Vzpostavimo povezavo z nasim klientom
-    print('Povezovanje s klientom...')
+    # Establish a connection with our client
+    print('Connecting...')
     await device_client.connect()
-    print('Povezava s klientom vzpostavljena.')
+    print('Success.')
 
     def calculateA():
         cas_delovanja = executeTimer.current()+holdingTimer.current()+abortingTimer.current()
-        #print(f"Cas delovanja:  {cas_delovanja:0.1f} sekund")
         cas_v_napaki = heldTimer.current() + stoppedTimer.current() + abortedTimer.current()
-        #print(f"Cas v napaki:   {cas_v_napaki:0.1f} sekund")
 
         if cas_v_napaki > 1 and cas_delovanja == 0:
             a_oee = 0
@@ -462,20 +461,19 @@ async def main():
             a_oee = 0
         else:
             a_oee = cas_delovanja / (cas_delovanja+cas_v_napaki)
-        
-        #print(f"A:  {a_oee*100:0.2f}%   ")    
+          
         return a_oee    
 
     def calculateP():
         try:
             p_oee = partsProduced/ ((executeTimer._current_time/60)*(machDesignSpeed))
-            #print(f"P:  {p_oee*100:0.2f}%   ")
+
             return p_oee
         except:
             if executeTimer._current_time == 0:
-                print("Napaka (P): Stroj se ni bil v stanju izvrsevanja.")
+
             elif machDesignSpeed == 0:
-                print("Napaka (P): Maksimalna hitrost kosov na minuto je nastavljena na 0. Prosim popravi vrednost.")
+                print("Error (P): Max speed is set to 0. Please change the speed.")
             print("P:  0.00%   ")
 
     def calculateQ():
@@ -484,7 +482,7 @@ async def main():
             #print(f"Q:  {q_oee*100:0.2f}%   ")
             return q_oee
         except:
-            print("Napaka (Q): Ni proizvedenih izdelkov.")
+            print("Error (Q): No parts produced.")
 
     
 
@@ -500,17 +498,18 @@ async def main():
             print(f"OEE:\t{oee*100:0.2f}%   ")
             return oee_a, oee_p, oee_q, oee
         except:
-            print("Napaka (OEE): OEE nima dovolj podatkov za izracun.")
+            print("Error (OEE): not enough data.")
 
 
-    # Funkcija za pretvorbo telemetrije v JSON datoteko
+    
+    # Function to convert telemetry to JSON file
     def collectJsonData():
         try:
-            # Zapisemo vrednosti, ki jih spremljamo v spremenljivke
+            
+            # Record the values we monitor in the variables
             oeeA, oeeP, oeeQ, oee = calculateOEE()
 
-            #print("OEE: ",calculateOEE())
-            # Sestavimo JSON datoteko za prenos vrednosti v oblak
+            # Let's compile a JSON file to transfer the values to the cloud
             data = {
                 "A" : float(oeeA)*100,
                 "P"      : float(oeeP)*100,
@@ -526,22 +525,23 @@ async def main():
 
         
     
-    # Funkcija za sprejem ukazov iz oblaka
+    
+    # Function for receiving commands from the cloud
     async def commandListener(device_client):
         try:
             global intervalPosiljanja
             while True:
 
                 
-                    # Cakamo na ukaz iz aplikacije 
+                    # Wait for the command from the cloud application
                     method_request = await device_client.receive_method_request()
 
-                    # Pridobimo ime prejetega ukaza
+                    # Get command name
                     ukaz = method_request.name
 
-                    # Izpis ukaza
-                    print("\t>Sprejet ukaz iz IoT Central aplikacije: ", ukaz)
-                    # Pripravimo odgovor na prejet ukaz
+                    # Print command name
+                    print("\t>Command from IoT Central application: ", ukaz)
+                    # Prepare the answer for cloud application
                     payload = {'result': True, 'command': ukaz}
 
                     if ukaz == 'nOdstSlabihKosov':
@@ -553,50 +553,52 @@ async def main():
                         print(f"Nastavljen nov interval posiljanja sporocil v aplikacijo IoT Central: {intervalPosiljanja}")
                     
                     
-                    # Vrnemo odgovor o uspesno sprejetem ukazu
+                    
+                    # We return the answer about the successfully passed command
                     method_response = MethodResponse.create_from_method_request(
                         method_request, 200, payload
                     )
 
-                    # Pocakamo da je odgovor uspesno poslan
+                    # We are waiting for the response to be sent successfully
                     await device_client.send_method_response(method_response)
 
-        # V primeru da pride do prekinitve prenehamo z izvajanjem funkcije
+        # In the event of an interruption, stop the function
         except asyncio.CancelledError:
             print("\n")
                 
-    # Funkcija za posiljanje telemetrije v oblak
+    
+    # Function for sending telemetry to the cloud
     async def mainLoop():
         try:
 
             while True:
 
-                # Klic funkcije za pripravo telemetrije
+                # Call the telemetry preparation function
                 telemetry = collectJsonData()
 
-                print(f"Poslana telemetrija:\t{telemetry}")
+                print(f"Telementry:\t{telemetry}")
 
-                # Telemetrijo posljemo v IoT Central
+                # Telemetry is sent to IoT Central
                 await device_client.send_message(telemetry)
 
-                #Pocakamo 60s na posiljanje novega paketa
+                # Wait 60s or so
                 await asyncio.sleep(intervalPosiljanja)
 
-        # V primeru da pride do prekinitve prenehamo z izvajanjem funkcije        
+        # In the event of an interruption, stop the function        
         except asyncio.CancelledError:
-            print("Zapiram povezavo z IoT Cetral...")
-    
+            print("Closing connection to IoT Cetral...")
 
-    # Zaženemo vzporedno cakanje na ukaze
+    
+    # We run a parallel wait for commands
     listeners = asyncio.gather(commandListener(device_client))
     
-    # Pozenemo glavno zanko
+    # Let's take the main loop
     await mainLoop()
-
-    # Prekinemo cakanje na ukaze
+    
+    # Let's stop waiting for orders
     listeners.cancel()
 
-    # Prekinemo povezavo s serverjem
+    # Disconnect from the server
     await device_client.disconnect()
     
 
@@ -604,7 +606,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Povezava zaprta.")
-
-
-
+        print("Connection closed.")
