@@ -1,12 +1,9 @@
 # TwinCAT PLC connected to the Azure IoT Central Application
 
-This is an edge computing application.
+This is an Edge Computing application where The TwinCAT device is connected to Microsoft Azure IoT central application using Raspberry Pi as an edge device. 
 
-The TwinCAT device is connected to Microsoft Azure IoT central application using Raspberry Pi as an edge device.
-
-We can see the data computed on the edge and see results in real time on the Azure IoT Central Dashboard.
-
-We can also control the process and change variable values on the PLC from the Web Application from anywhere in the world.
+- We can see the data computed on the edge and see results in real time on the Azure IoT Central Dashboard.
+- We can also control the process and change variable values on the PLC from the Web Application from anywhere in the world.
 
 <br/>
 <br/>
