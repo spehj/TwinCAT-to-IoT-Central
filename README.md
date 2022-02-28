@@ -28,3 +28,5 @@ Calculated data are then transferred to the Azure IoT Central web application, w
 
 
 
+
+<img src="https://user-images.githubusercontent.com/62114221/156036918-e1bcde0c-8383-476e-b652-18ebb2196baa.png" width="70%">
