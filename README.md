@@ -22,7 +22,7 @@ This application is just an example of an Edge application. We are monitoring th
 The TwinCAT environment runs a production line simulation based on the  PackML state model. For connection between Raspberry Pi and TwinCAT device, PyADS library has been used.
 
 ## Azure IoT Central Application
-<img src="https://user-images.githubusercontent.com/62114221/156036157-f68033eb-818f-44aa-865a-03d750f6ec70.png" width="200")>
+<img src="https://user-images.githubusercontent.com/62114221/156036157-f68033eb-818f-44aa-865a-03d750f6ec70.png" width="200">
 
 Calculated data are then transferred to the Azure IoT Central web application, where the operator has remote supervisory control over the effectiveness of the process.
 
